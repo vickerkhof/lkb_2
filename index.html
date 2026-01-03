@@ -67,18 +67,25 @@
 
         // Fetch and process data on load
         window.onload = async () => {
-            // 1. Load JSON Move Data
-            const moveRes = await fetch('/api/moves');
-            const moveData = await moveRes.json();
-            renderMoveChart(moveData);
+            try {
+                // 1. Load JSON Move Data directly from the file
+                const moveRes = await fetch('moves.json');
+                const moveData = await moveRes.json();
+                renderMoveChart(moveData);
 
-            // 2. Load CSV Game Data
-            const gameRes = await fetch('/api/games');
-            const csvText = await gameRes.text();
-            Papa.parse(csvText, {
-                header: true, dynamicTyping: true,
-                complete: (results) => processGames(results.data)
-            });
+                // 2. Load CSV Game Data directly from the file
+                const gameRes = await fetch('games.csv');
+                const csvText = await gameRes.text();
+                
+                Papa.parse(csvText, {
+                    header: true, 
+                    dynamicTyping: true,
+                    skipEmptyLines: true, // Added to prevent errors with trailing newlines
+                    complete: (results) => processGames(results.data)
+                });
+            } catch (error) {
+                console.error("Error loading data:", error);
+            }
         };
 
         function processGames(data) {

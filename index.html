@@ -69,12 +69,12 @@
         window.onload = async () => {
             try {
                 // 1. Load JSON Move Data directly from the file
-                const moveRes = await fetch('moves.json');
+                const moveRes = await fetch('./moves.json');
                 const moveData = await moveRes.json();
                 renderMoveChart(moveData);
 
                 // 2. Load CSV Game Data directly from the file
-                const gameRes = await fetch('games.csv');
+                const gameRes = await fetch('./games.csv');
                 const csvText = await gameRes.text();
                 
                 Papa.parse(csvText, {

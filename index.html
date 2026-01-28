@@ -14,6 +14,7 @@
         .stat-value { color: #fff; font-size: 1.75rem; font-weight: 800; line-height: 1.2; }
         .header-text { color: #fff; font-size: 1.5rem; font-weight: 700; }
         
+        /* Custom Win/Draw/Loss Bar */
         .outcome-container { margin-top: 8px; }
         .outcome-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background-color: #3c3a37; }
         .bar-win { background-color: #81b64c; }
@@ -62,7 +63,7 @@
                 <h3 class="text-white font-bold mb-6 flex items-center gap-2">
                     <span class="w-1 h-5 bg-[#81b64c]"></span> Rating Verloop
                 </h3>
-                <div class="chart-container">
+                <div class="relative h-[300px]">
                     <canvas id="ratingChart"></canvas>
                 </div>
             </div>
@@ -102,10 +103,13 @@
         };
 
         function processGames(data) {
+            // 1. Filter for valid rows
             const clean = data.filter(r => r.accuracy != null && r.my_rating != null);
             const total = clean.length;
+            
             if (total === 0) return;
 
+            // 2. Standardized result filtering (handles 'Win', 'win', ' win ')
             const wins = clean.filter(r => String(r.result).trim().toLowerCase() === 'win');
             const draws = clean.filter(r => String(r.result).trim().toLowerCase() === 'draw');
             const losses = clean.filter(r => String(r.result).trim().toLowerCase() === 'loss');
@@ -114,6 +118,7 @@
             const drawPct = ((draws.length / total) * 100);
             const lossPct = ((losses.length / total) * 100);
 
+            // Update Win Rate UI
             document.getElementById('winRate').innerText = winPct.toFixed(1) + '%';
             document.getElementById('winBarContainer').innerHTML = `
                 <div class="outcome-bar">
@@ -123,16 +128,19 @@
                 </div>
             `;
 
+            // 3. Robust Average Function
             const getAvg = (arr) => {
                 if (!arr || arr.length === 0) return 0;
                 const totalRating = arr.reduce((sum, game) => sum + (Number(game.opponent_rating) || 0), 0);
                 return Math.round(totalRating / arr.length);
             };
 
+            // Update UI
             document.getElementById('avgRating').innerText = getAvg(clean);
             document.getElementById('ratingBreakdown').innerText = 
                 `W: ${getAvg(wins)} | D: ${getAvg(draws)} | L: ${getAvg(losses)}`;
 
+            // Other Stats
             const avgAcc = clean.reduce((a, b) => a + (Number(b.accuracy) || 0), 0) / total;
             document.getElementById('avgAccuracy').innerText = avgAcc.toFixed(1);
             document.getElementById('totalGames').innerText = total;
@@ -141,7 +149,6 @@
         }
 
         function renderMoveChart(data) {
-            // Sort data based on moveOrder array
             const sortedLabels = moveOrder.filter(label => data.hasOwnProperty(label));
             const sortedValues = sortedLabels.map(label => data[label]);
 
@@ -157,6 +164,7 @@
                 },
                 options: { 
                     indexAxis: 'y', 
+                    maintainAspectRatio: true,
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { color: '#312e2b' }, ticks: { color: '#989795' } },
@@ -168,6 +176,8 @@
 
         function renderRatingHistoryChart(data) {
             const ctx = document.getElementById('ratingChart');
+            
+            // Destroy existing chart instance if it exists
             const existingChart = Chart.getChart(ctx);
             if (existingChart) { existingChart.destroy(); }
 
@@ -188,7 +198,7 @@
                 },
                 options: { 
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     plugins: { legend: { display: false } },
                     scales: { 
                         y: { 

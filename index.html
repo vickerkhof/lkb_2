@@ -123,11 +123,17 @@
                 </div>
             `;
 
-            // Opponent Rating Logic
-            const getAvg = (arr) => arr.length ? Math.round(arr.reduce((a,b) => a + (b.opponent_rating || 0), 0) / arr.length) : 0;
-            
+            // Updated Opponent Rating Logic
+            const getAvg = (arr) => {
+                if (!arr.length) return 0;
+                const totalRating = arr.reduce((sum, game) => sum + (Number(game.opponent_rating) || 0), 0);
+                return Math.round(totalRating / arr.length);
+            };
+
+            // Update UI
             document.getElementById('avgRating').innerText = getAvg(clean);
-            document.getElementById('ratingBreakdown').innerText = `W: ${getAvg(wins)} | D: ${getAvg(draws)} | L: ${getAvg(losses)}`;
+            document.getElementById('ratingBreakdown').innerText = 
+                `W: ${getAvg(wins)} | D: ${getAvg(draws)} | L: ${getAvg(losses)}`;
 
             // Other Stats
             document.getElementById('avgAccuracy').innerText = (clean.reduce((a,b)=>a+b.accuracy,0)/total).toFixed(1);

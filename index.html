@@ -63,7 +63,9 @@
                 <h3 class="text-white font-bold mb-6 flex items-center gap-2">
                     <span class="w-1 h-5 bg-[#81b64c]"></span> Rating Verloop
                 </h3>
-                <canvas id="ratingChart" height="200"></canvas>
+                <div class="relative h-[300px]">
+                    <canvas id="ratingChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -101,13 +103,16 @@
         };
 
         function processGames(data) {
-            const clean = data.filter(r => r.accuracy != null);
+            // 1. Filter for valid rows
+            const clean = data.filter(r => r.accuracy != null && r.my_rating != null);
             const total = clean.length;
             
-            // Logic for Win/Draw/Loss
-            const wins = clean.filter(r => String(r.result).toLowerCase() === 'win');
-            const draws = clean.filter(r => String(r.result).toLowerCase() === 'draw');
-            const losses = clean.filter(r => String(r.result).toLowerCase() === 'loss');
+            if (total === 0) return;
+
+            // 2. Standardized result filtering (handles 'Win', 'win', ' win ')
+            const wins = clean.filter(r => String(r.result).trim().toLowerCase() === 'win');
+            const draws = clean.filter(r => String(r.result).trim().toLowerCase() === 'draw');
+            const losses = clean.filter(r => String(r.result).trim().toLowerCase() === 'loss');
 
             const winPct = ((wins.length / total) * 100);
             const drawPct = ((draws.length / total) * 100);
@@ -123,9 +128,9 @@
                 </div>
             `;
 
-            // Updated Opponent Rating Logic
+            // 3. Robust Average Function
             const getAvg = (arr) => {
-                if (!arr.length) return 0;
+                if (!arr || arr.length === 0) return 0;
                 const totalRating = arr.reduce((sum, game) => sum + (Number(game.opponent_rating) || 0), 0);
                 return Math.round(totalRating / arr.length);
             };
@@ -136,14 +141,14 @@
                 `W: ${getAvg(wins)} | D: ${getAvg(draws)} | L: ${getAvg(losses)}`;
 
             // Other Stats
-            document.getElementById('avgAccuracy').innerText = (clean.reduce((a,b)=>a+b.accuracy,0)/total).toFixed(1);
+            const avgAcc = clean.reduce((a, b) => a + (Number(b.accuracy) || 0), 0) / total;
+            document.getElementById('avgAccuracy').innerText = avgAcc.toFixed(1);
             document.getElementById('totalGames').innerText = total;
 
             renderRatingHistoryChart(clean);
         }
 
         function renderMoveChart(data) {
-            // Sort data based on moveOrder array
             const sortedLabels = moveOrder.filter(label => data.hasOwnProperty(label));
             const sortedValues = sortedLabels.map(label => data[label]);
 
@@ -159,6 +164,7 @@
                 },
                 options: { 
                     indexAxis: 'y', 
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { color: '#312e2b' }, ticks: { color: '#989795' } },
@@ -169,13 +175,19 @@
         }
 
         function renderRatingHistoryChart(data) {
-            new Chart(document.getElementById('ratingChart'), {
+            const ctx = document.getElementById('ratingChart');
+            
+            // Destroy existing chart instance if it exists
+            const existingChart = Chart.getChart(ctx);
+            if (existingChart) { existingChart.destroy(); }
+
+            new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map((_, i) => i + 1),
                     datasets: [{
                         label: 'Rating',
-                        data: data.map(r => r.my_rating),
+                        data: data.map(r => Number(r.my_rating)),
                         borderColor: '#81b64c',
                         backgroundColor: 'rgba(129, 182, 76, 0.1)',
                         fill: true,
@@ -185,9 +197,15 @@
                     }]
                 },
                 options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { 
-                        y: { grid: { color: '#312e2b' }, ticks: { color: '#989795' } },
+                        y: { 
+                            grid: { color: '#312e2b' }, 
+                            ticks: { color: '#989795' },
+                            beginAtZero: false 
+                        },
                         x: { display: false }
                     } 
                 }

@@ -20,9 +20,6 @@
         .bar-draw { background-color: #989795; }
         .bar-loss { background-color: #fa3633; }
         .rating-subtext { font-size: 0.7rem; color: #989795; margin-top: 4px; font-weight: 600; }
-
-        /* FIX: Prevents the charts from growing indefinitely */
-        .chart-container { position: relative; height: 350px; width: 100%; }
     </style>
 </head>
 <body class="p-6 md:p-12">
@@ -59,17 +56,13 @@
                 <h3 class="text-white font-bold mb-6 flex items-center gap-2">
                     <span class="w-1 h-5 bg-[#81b64c]"></span> Kwaliteit van de zetten
                 </h3>
-                <div class="chart-container">
-                    <canvas id="moveQualityChart"></canvas>
-                </div>
+                <canvas id="moveQualityChart" height="400"></canvas>
             </div>
             <div class="chess-card p-6 lg:col-span-2">
                 <h3 class="text-white font-bold mb-6 flex items-center gap-2">
                     <span class="w-1 h-5 bg-[#81b64c]"></span> Rating Verloop
                 </h3>
-                <div class="chart-container">
-                    <canvas id="ratingChart"></canvas>
-                </div>
+                <canvas id="ratingChart" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -146,11 +139,11 @@
         }
 
         function renderMoveChart(data) {
-            const ctx = document.getElementById('moveQualityChart');
+            // Sort data based on moveOrder array
             const sortedLabels = moveOrder.filter(label => data.hasOwnProperty(label));
             const sortedValues = sortedLabels.map(label => data[label]);
 
-            new Chart(ctx, {
+            new Chart(document.getElementById('moveQualityChart'), {
                 type: 'bar',
                 data: {
                     labels: sortedLabels,
@@ -162,8 +155,6 @@
                 },
                 options: { 
                     indexAxis: 'y', 
-                    responsive: true,
-                    maintainAspectRatio: false, // Essential for fixed-height container
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { color: '#312e2b' }, ticks: { color: '#989795' } },

@@ -72,18 +72,26 @@
 
     <script>
         const moveColors = {
-            'Briljant': '#1ba39c', 'Beste': '#95bb4a', 'Uitstekend': '#96bc4b', 
-            'Goed': '#a88d59', 'Boek': '#d5a47d', 'Onnauwkeurigheid': '#f0c15c',
-            'Fout': '#e6912c', 'Blunder': '#b33430', 'Gemiste Winstkans': '#dbac16'
+            'Briljant': '#1ba39c',
+            'Geweldig': '#2173a1',
+            'Beste': '#95bb4a', 
+            'Uitstekend': '#96bc4b', 
+            'Goed': '#a88d59', 
+            'Boek': '#d5a47d', 
+            'Onnauwkeurigheid': '#f0c15c',
+            'Fout': '#e6912c', 
+            'Blunder': '#b33430', 
+            'Gemiste Winstkans': '#dbac16'
         };
 
         const moveOrder = [
-            'Briljant', 'Beste', 'Uitstekend', 'Goed', 
+            'Briljant', 'Geweldig', 'Beste', 'Uitstekend', 'Goed', 
             'Boek', 'Onnauwkeurigheid', 'Fout', 'Blunder', 'Gemiste Winstkans'
         ];
 
         window.onload = async () => {
             try {
+                // We halen de data direct op uit de root van de repo
                 const moveRes = await fetch('./moves.json');
                 const moveData = await moveRes.json();
                 renderMoveChart(moveData);
